@@ -138,7 +138,18 @@ type swaggerParameterObject struct {
 	Enum             []string            `json:"enum,omitempty"`
 	CollectionFormat string              `json:"collectionFormat,omitempty"`
 	Default          string              `json:"default,omitempty"`
-	MinItems         *int                `json:"minItems,omitempty"`
+
+	MultipleOf       float64 `json:"multipleOf,omitempty"`
+	Maximum          float64 `json:"maximum,omitempty"`
+	ExclusiveMaximum bool    `json:"exclusiveMaximum,omitempty"`
+	Minimum          float64 `json:"minimum,omitempty"`
+	ExclusiveMinimum bool    `json:"exclusiveMinimum,omitempty"`
+	MaxLength        uint64  `json:"maxLength,omitempty"`
+	MinLength        uint64  `json:"minLength,omitempty"`
+	Pattern          string  `json:"pattern,omitempty"`
+	MaxItems         uint64  `json:"maxItems,omitempty"`
+	MinItems         uint64  `json:"minItems,omitempty"`
+	UniqueItems      bool    `json:"uniqueItems,omitempty"`
 
 	// Or you can explicitly refer to another type. If this is defined all
 	// other fields should be empty

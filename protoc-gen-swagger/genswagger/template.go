@@ -769,14 +769,15 @@ func renderServices(services []*descriptor.Service, paths swaggerPathsObject, re
 					var paramType, paramFormat, desc, collectionFormat, defaultValue string
 					var enumNames []string
 					var items *swaggerItemsObject
-					var minItems *int
+					var minItems uint64
+					var schema swaggerSchemaObject
 					switch pt := parameter.Target.GetType(); pt {
 					case pbdescriptor.FieldDescriptorProto_TYPE_GROUP, pbdescriptor.FieldDescriptorProto_TYPE_MESSAGE:
 						if descriptor.IsWellKnownType(parameter.Target.GetTypeName()) {
 							if parameter.IsRepeated() {
 								return fmt.Errorf("only primitive and enum types are allowed in repeated path parameters")
 							}
-							schema := schemaOfField(parameter.Target, reg, customRefs)
+							schema = schemaOfField(parameter.Target, reg, customRefs)
 							paramType = schema.Type
 							paramFormat = schema.Format
 							desc = schema.Description
@@ -807,7 +808,7 @@ func renderServices(services []*descriptor.Service, paths swaggerPathsObject, re
 							return fmt.Errorf("unknown field type %v", pt)
 						}
 
-						schema := schemaOfField(parameter.Target, reg, customRefs)
+						schema = schemaOfField(parameter.Target, reg, customRefs)
 						desc = schema.Description
 						defaultValue = schema.Default
 					}
@@ -823,8 +824,7 @@ func renderServices(services []*descriptor.Service, paths swaggerPathsObject, re
 						paramType = "array"
 						paramFormat = ""
 						collectionFormat = reg.GetRepeatedPathParamSeparatorName()
-						minItems = new(int)
-						*minItems = 1
+						minItems = 1
 					}
 
 					if desc == "" {
@@ -834,7 +834,7 @@ func renderServices(services []*descriptor.Service, paths swaggerPathsObject, re
 					if reg.GetUseJSONNamesForFields() {
 						parameterString = lowerCamelCase(parameterString, meth.RequestType.Fields, msgs)
 					}
-					parameters = append(parameters, swaggerParameterObject{
+					newParam := swaggerParameterObject{
 						Name:        parameterString,
 						Description: desc,
 						In:          "path",
@@ -847,7 +847,18 @@ func renderServices(services []*descriptor.Service, paths swaggerPathsObject, re
 						Items:            items,
 						CollectionFormat: collectionFormat,
 						MinItems:         minItems,
-					})
+						MaxItems:         schema.MaxItems,
+						Pattern:          schema.Pattern,
+						MultipleOf:       schema.MultipleOf,
+						Maximum:          schema.Maximum,
+						ExclusiveMaximum: schema.ExclusiveMaximum,
+						Minimum:          schema.Minimum,
+						ExclusiveMinimum: schema.ExclusiveMinimum,
+						MaxLength:        schema.MaxLength,
+						MinLength:        schema.MinLength,
+						UniqueItems:      schema.UniqueItems,
+					}
+					parameters = append(parameters, newParam)
 				}
 				// Now check if there is a body parameter
 				if b.Body != nil {
